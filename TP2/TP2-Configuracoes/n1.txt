@@ -1,0 +1,207 @@
+!
+! Last configuration change at 21:24:09 UTC Thu Apr 4 2024
+!
+version 15.6
+service timestamps debug datetime msec
+service timestamps log datetime msec
+no service password-encryption
+!
+hostname n1
+!
+boot-start-marker
+boot-end-marker
+!
+!
+!
+no aaa new-model
+ethernet lmi ce
+!
+!
+!
+mmi polling-interval 60
+no mmi auto-configure
+no mmi pvc
+mmi snmp-timeout 180
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+ip cef
+no ipv6 cef
+!
+multilink bundle-name authenticated
+mpls traffic-eng tunnels
+!
+!
+!
+!
+!
+redundancy
+!
+!
+! 
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface Loopback0
+ no shutdown
+ ip address 1.1.1.1 255.255.255.255
+!
+interface Tunnel0
+ no shutdown
+ ip unnumbered Loopback0
+ tunnel mode mpls traffic-eng
+ tunnel destination 5.5.5.5
+ tunnel mpls traffic-eng autoroute announce
+ tunnel mpls traffic-eng path-option 1 explicit name LSP1
+ tunnel mpls traffic-eng load-share 1
+ no routing dynamic
+!
+interface Tunnel1
+ no shutdown
+ ip unnumbered Loopback0
+ tunnel mode mpls traffic-eng
+ tunnel destination 5.5.5.5
+ tunnel mpls traffic-eng autoroute announce
+ tunnel mpls traffic-eng priority 7 7
+ tunnel mpls traffic-eng bandwidth 750
+ tunnel mpls traffic-eng path-option 1 explicit name LSP2
+ tunnel mpls traffic-eng load-share 1
+ no routing dynamic
+!
+interface GigabitEthernet0/0
+ no shutdown
+ ip address 192.168.131.1 255.255.255.0
+ ip policy route-map CUSTOMROUTE
+ duplex auto
+ speed auto
+ media-type rj45
+!
+interface GigabitEthernet0/1
+ no shutdown
+ ip address 192.168.12.1 255.255.255.0
+ duplex auto
+ speed auto
+ media-type rj45
+ mpls traffic-eng tunnels
+ mpls ip
+ ip rsvp bandwidth 1000000
+!
+interface GigabitEthernet0/2
+ no shutdown
+ ip address 192.168.16.1 255.255.255.0
+ duplex auto
+ speed auto
+ media-type rj45
+ mpls traffic-eng tunnels
+ mpls ip
+ ip rsvp bandwidth 1000000
+!
+interface GigabitEthernet0/3
+ no shutdown
+ no ip address
+ shutdown
+ duplex auto
+ speed auto
+ media-type rj45
+!
+router ospf 1
+ mpls traffic-eng router-id Loopback0
+ mpls traffic-eng area 0
+ router-id 1.1.1.1
+ network 1.1.1.1 0.0.0.0 area 0
+ network 192.168.12.0 0.0.0.255 area 0
+ network 192.168.16.0 0.0.0.255 area 0
+ network 192.168.131.0 0.0.0.255 area 0
+!
+ip forward-protocol nd
+!
+!
+no ip http server
+no ip http secure-server
+!
+ip explicit-path name LSP1 enable
+ next-address 2.2.2.2
+ next-address 3.3.3.3
+ next-address 4.4.4.4
+ next-address 5.5.5.5
+!
+ip explicit-path name LSP2 enable
+ next-address 6.6.6.6
+ next-address 7.7.7.7
+ next-address 5.5.5.5
+!
+!
+route-map CUSTOMROUTE permit 15
+ match ip address 101
+ set interface Tunnel0
+!
+route-map CUSTOMROUTE permit 16
+ match ip address 102
+ set interface Tunnel1
+!
+!
+mpls ldp router-id Loopback0 force
+access-list 101 deny   tcp any any eq www
+access-list 101 deny   tcp any any eq 8080
+access-list 101 permit udp any any
+access-list 101 permit icmp any any
+access-list 102 deny   udp any any range 16384 32767
+access-list 102 permit tcp any any
+access-list 102 permit icmp any any
+!
+control-plane
+!
+banner exec ^CCCCCCCCCCCCCCCC
+**************************************************************************
+* IOSv is strictly limited to use for evaluation, demonstration and IOS  *
+* education. IOSv is provided as-is and is not supported by Cisco's      *
+* Technical Advisory Center. Any use or disclosure, in whole or in part, *
+* of the IOSv Software or Documentation to any third party for any       *
+* purposes is expressly prohibited except as otherwise authorized by     *
+* Cisco in writing.                                                      *
+**************************************************************************^C
+banner incoming ^CCCCCCCCCCCCCCCC
+**************************************************************************
+* IOSv is strictly limited to use for evaluation, demonstration and IOS  *
+* education. IOSv is provided as-is and is not supported by Cisco's      *
+* Technical Advisory Center. Any use or disclosure, in whole or in part, *
+* of the IOSv Software or Documentation to any third party for any       *
+* purposes is expressly prohibited except as otherwise authorized by     *
+* Cisco in writing.                                                      *
+**************************************************************************^C
+banner login ^CCCCCCCCCCCCCCCC
+**************************************************************************
+* IOSv is strictly limited to use for evaluation, demonstration and IOS  *
+* education. IOSv is provided as-is and is not supported by Cisco's      *
+* Technical Advisory Center. Any use or disclosure, in whole or in part, *
+* of the IOSv Software or Documentation to any third party for any       *
+* purposes is expressly prohibited except as otherwise authorized by     *
+* Cisco in writing.                                                      *
+**************************************************************************^C
+!
+line con 0
+line aux 0
+line vty 0 4
+ login
+ transport input none
+!
+no scheduler allocate
+!
+end
